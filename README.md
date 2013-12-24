@@ -27,7 +27,7 @@ For greedy and A* search algorithms, I used 4 different heuristic functions:
 - Hungarian algorithm (http://en.wikipedia.org/wiki/Hungarian_algorithm)
 - Max{manhattan, euclidean, hungarian}
 
-Hungarian algorithm is adapted from adapted from https://github.com/KevinStern/software-and-algorithms/blob/master/src/main/java/blogspot/software_and_algorithms/stern_library/optimization/HungarianAlgorithm.java
+Hungarian algorithm is adapted from https://github.com/KevinStern/software-and-algorithms/blob/master/src/main/java/blogspot/software_and_algorithms/stern_library/optimization/HungarianAlgorithm.java
 
 Instructions
 ------------
