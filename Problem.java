@@ -36,11 +36,6 @@ public class Problem {
 		for(Coordinate box : state.boxes)
 			if (!goals.contains(box))
 				return false;
-		
-		System.out.println("goal found! player ("+(state.player.row)+","+state.player.col+"), ");
-		for(Coordinate coor : state.boxes){
-            System.out.println("[Box coordinates] row: " + coor.row + " col: " + coor.col);
-        }
 		return true;
 	}
 	

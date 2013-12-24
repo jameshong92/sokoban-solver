@@ -309,6 +309,3 @@ public class Search {
 	};
 	
 }
-
-
-

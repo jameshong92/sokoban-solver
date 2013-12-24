@@ -19,10 +19,8 @@ public class SokobanSolver {
 	private Coordinate player;
 	private Problem prob;
 	private Heuristics h;
-	private char hChoice;
 	
-	public SokobanSolver(char hChoice) {
-		this.hChoice = hChoice;
+	public SokobanSolver() {
 	}
 	
 	/**
@@ -33,7 +31,7 @@ public class SokobanSolver {
 	 * @throws NumberFormatException
 	 * @throws NoSuchElementException
 	 */
-	public int loadFile(String filename) throws FileNotFoundException, 
+	public int loadFile(String filename, char hChoice) throws FileNotFoundException, 
 			NumberFormatException, NoSuchElementException {
 		
 		int numPlayer = 0;
@@ -60,7 +58,6 @@ public class SokobanSolver {
 		}
 		prob = new Problem(walls, new State(boxes, player), goals);
 		h = new Heuristics(goals, hChoice);
-		System.out.println(numPlayer);
 		return numPlayer;
 	}
 
