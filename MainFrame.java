@@ -141,8 +141,8 @@ public class MainFrame extends JFrame {
 		topPanel.setSize(new Dimension(650, 100));
 		topPanel.setLayout(new GridLayout(2, 1));
 		
-		// add Factbook logo on the top grid
-		Image logo = ImageIO.read(new File("factbook-logo.png"));
+		// add Sokoban logo on the top grid
+		Image logo = ImageIO.read(new File("sokoban-logo.png"));
 		Image resizedLogo = logo.getScaledInstance(650, 50,
 				Image.SCALE_SMOOTH); // resize image to fit the frame
 		JLabel picLabel = new JLabel(new ImageIcon(resizedLogo));
