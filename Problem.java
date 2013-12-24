@@ -56,54 +56,38 @@ public class Problem {
 		for (Coordinate box : state.boxes) {
 			int row = box.row;
 			int col = box.col;
-			if (walls.contains(new Coordinate(row-1, col))&&walls.contains(new Coordinate(row, col-1)))
-				return true; //top & left
-			if (walls.contains(new Coordinate(row-1, col))&&walls.contains(new Coordinate(row, col+1)))
-				return true; //top & right
-			if (walls.contains(new Coordinate(row+1, col))&&walls.contains(new Coordinate(row, col-1)))
-				return true; //bottom & left
-			if (walls.contains(new Coordinate(row+1, col))&&walls.contains(new Coordinate(row, col+1)))
-				return true; //bottom & right
-			
-			if (walls.contains(new Coordinate(row-1, col-1))&&walls.contains(new Coordinate(row-1, col))&&
-					walls.contains(new Coordinate(row-1, col+1))&&walls.contains(new Coordinate(row, col-2))&&
-					walls.contains(new Coordinate(row, col+2))&&(!goals.contains(new Coordinate(row, col-1))&&
-							!goals.contains(new Coordinate(row, col+1))))
-				return true; //top & sides
-			if (walls.contains(new Coordinate(row+1, col-1))&&walls.contains(new Coordinate(row+1, col))&&
-					walls.contains(new Coordinate(row+1, col+1))&&walls.contains(new Coordinate(row, col-2))&&
-					walls.contains(new Coordinate(row, col+2))&&(!goals.contains(new Coordinate(row, col-1)))&&
-							(!goals.contains(new Coordinate(row, col+1))))
-				return true; //bottom & sides
-			if (walls.contains(new Coordinate(row-1, col-1))&&walls.contains(new Coordinate(row, col-1))&&
-					walls.contains(new Coordinate(row+1, col-1))&&walls.contains(new Coordinate(row-2, col))&&
-					walls.contains(new Coordinate(row+2, col))&&(!goals.contains(new Coordinate(row-1, col)))&&
-							(!goals.contains(new Coordinate(row+1, col))))
-				return true; //left & vertical
-			if (walls.contains(new Coordinate(row-1, col+1))&&walls.contains(new Coordinate(row, col+1))&&
-					walls.contains(new Coordinate(row+1, col+1))&&walls.contains(new Coordinate(row-2, col))&&
-					walls.contains(new Coordinate(row+2, col))&&(!goals.contains(new Coordinate(row-1, col)))&&
-							(!goals.contains(new Coordinate(row+1, col))))
-				return true; //right & top/bottom
-			
-			if (walls.contains(new Coordinate(row-1, col))&&
-					((walls.contains(new Coordinate(row-1, col-1))&&state.boxes.contains(new Coordinate(row, col-1))) ||
-					(walls.contains(new Coordinate(row-1, col+1))&&state.boxes.contains(new Coordinate(row, col+1)))))
-				return true; //top blocked & 2 boxes each other
-			if (walls.contains(new Coordinate(row+1, col))&&
-					((walls.contains(new Coordinate(row+1, col-1))&&state.boxes.contains(new Coordinate(row, col-1))) ||
-					(walls.contains(new Coordinate(row+1, col+1))&&state.boxes.contains(new Coordinate(row, col+1)))))
-				return true; //bottom blocked & 2 boxes each other
-			if (walls.contains(new Coordinate(row, col-1))&&
-					((walls.contains(new Coordinate(row-1, col-1))&&state.boxes.contains(new Coordinate(row-1, col))) ||
-					(walls.contains(new Coordinate(row+1, col-1))&&state.boxes.contains(new Coordinate(row+1, col)))))
-				return true; //left blocked & 2 boxes each other
-			if (walls.contains(new Coordinate(row, col+1))&&
-					((walls.contains(new Coordinate(row-1, col+1))&&state.boxes.contains(new Coordinate(row-1, col))) ||
-					(walls.contains(new Coordinate(row+1, col+1))&&state.boxes.contains(new Coordinate(row+1, col)))))
-				return true; //right blocked & 2 boxes each other
+			if (!setContains(goals, row, col)) {
+				if (setContains(walls, row-1, col)&&setContains(walls, row, col-1))
+					return true; //top & left
+				if (setContains(walls, row-1, col)&&setContains(walls, row, col+1))
+					return true; //top & right
+				if (setContains(walls, row+1, col)&&setContains(walls, row, col-1))
+					return true; //bottom & left
+				if (setContains(walls, row+1, col)&&setContains(walls, row, col+1))
+					return true; //bottom & right
+
+				if (setContains(walls, row-1, col-1)&&setContains(walls, row-1, col)&&
+						setContains(walls, row-1, col+1)&&setContains(walls, row, col-2)&&
+						setContains(walls, row, col+2)&&(!setContains(goals, row, col-1))&&
+								!setContains(goals, row, col+1))
+					return true; //top & sides
+				if (setContains(walls, row+1, col-1)&&setContains(walls, row+1, col)&&
+						setContains(walls, row+1, col+1)&&setContains(walls, row, col-2)&&
+						setContains(walls, row, col+2)&&(!setContains(goals, row, col-1))&&
+								(!setContains(goals, row, col+1)))
+					return true; //bottom & sides
+				if (setContains(walls, row-1, col-1)&&setContains(walls, row, col-1)&&
+						setContains(walls, row+1, col-1)&&setContains(walls, row-2, col)&&
+						setContains(walls, row+2, col)&&(!setContains(goals, row-1, col))&&
+								(!setContains(goals, row+1, col)))
+					return true; //left & vertical
+				if (setContains(walls, row-1, col+1)&&setContains(walls, row, col+1)&&
+						setContains(walls, row+1, col+1)&&setContains(walls, row-2, col)&&
+						setContains(walls, row+2, col)&&(!setContains(goals, row-1, col))&&
+								(!setContains(goals, row+1, col)))
+					return true; //right & top/bottom
+			}
 		}
-		
 		return false;
 	}
 
