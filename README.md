@@ -31,6 +31,7 @@ Hungarian algorithm is adapted from https://github.com/KevinStern/software-and-a
 
 Instructions
 ------------
+<b> .java files should be placed in same directory as img folder and examples folder for the program to locate the images properly.</b>
 
 <h3>Usage</h3>
 
