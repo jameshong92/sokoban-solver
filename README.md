@@ -9,6 +9,7 @@ Purpose
 -------
 
 The purpose of this project is to solve a Sokoban puzzle using different search methods.
+
 <p>More information on Sokoban puzzle: http://www.sokobano.de/wiki/index.php?title=Main_Page</p>
 
 Implementation
