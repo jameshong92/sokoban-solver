@@ -7,7 +7,6 @@ import static javax.swing.ScrollPaneConstants.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
 
@@ -44,7 +43,7 @@ public class MainFrame extends JFrame {
 	private HashSet<Coordinate> goals;
 	private HashSet<Coordinate> boxes;
 	private Coordinate player;
-	private String[] puzzleStates;
+	private String[] puzzleStates; // string containing puzzle state for each step
 	
 	// choices for scroll-down menu
 	private String[] choices = {"Breadth-First", "Depth-First", "Uniform-Cost", 
@@ -211,6 +210,9 @@ public class MainFrame extends JFrame {
 		return topPanel;
 	}
 	
+	/**
+	 * Adds appropriate listeners to buttons and drop-down menus
+	 */
 
 	private void addListeners() {
 		// add actionListener to the search menu
@@ -311,6 +313,7 @@ public class MainFrame extends JFrame {
 			}
 		});	
 		
+		// add actionListener to prev button
 		prev.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
 				if (currentStep>0) {
@@ -320,13 +323,16 @@ public class MainFrame extends JFrame {
 			}
 		});
 		
+		// add actionListener to next button
 		next.addActionListener(new ActionListener() {
 			public void actionPerformed(ActionEvent arg0) {
+				// check if out of bounds
 				if (currentStep<steps.length) {
+					// check if puzzle state has been seen
 					if (puzzleStates[currentStep+1]==null) {
 						int row = player.row;
 						int col = player.col;
-						System.out.println("current player: " + row + ", " + col);
+						// update player and box (if needed) positions
 						if (steps[currentStep].equals("u")) {
 							Coordinate checkBox = new Coordinate(row-1, col);
 							if (boxes.contains(checkBox)) {
@@ -334,7 +340,6 @@ public class MainFrame extends JFrame {
 								boxes.add(new Coordinate(row-2, col));
 							}
 							player = new Coordinate(row-1, col);
-							System.out.println("in u, player: " + player.row + ", " + player.col);
 						}
 						else if (steps[currentStep].equals("d")) {
 							Coordinate checkBox = new Coordinate(row+1, col);
@@ -343,7 +348,6 @@ public class MainFrame extends JFrame {
 								boxes.add(new Coordinate(row+2, col));
 							}
 							player = new Coordinate(row+1, col);
-							System.out.println("in d, player: " + player.row + ", " + player.col);
 						}
 						else if (steps[currentStep].equals("l")) {
 							Coordinate checkBox = new Coordinate(row, col-1);
@@ -352,7 +356,6 @@ public class MainFrame extends JFrame {
 								boxes.add(new Coordinate(row, col-2));
 							}
 							player = new Coordinate(row, col-1);
-							System.out.println("in l, player: " + player.row + ", " + player.col);
 						}
 						else if (steps[currentStep].equals("r")) {
 							Coordinate checkBox = new Coordinate(row, col+1);
@@ -361,7 +364,6 @@ public class MainFrame extends JFrame {
 								boxes.add(new Coordinate(row, col+2));
 							}
 							player = new Coordinate(row, col+1);
-							System.out.println("in r, player: " + player.row + ", " + player.col);
 						}
 					}
 					currentStep += 1;
@@ -372,15 +374,15 @@ public class MainFrame extends JFrame {
 	
 	}
 
+	/**
+	 * Updates puzzle according to player and box positions
+	 */
 	private void updatePuzzle() {
-		int totalSteps = solution.split(" ").length;
+		int totalSteps = steps.length;
 		String output = "Solution: " + solution + "(total of " + totalSteps + " steps)\n\n";
-		output += "Showing step " + currentStep;
-		if (currentStep != 0)
-			output += " (moved " + steps[currentStep-1] + ")";
-		output += ":\n";
+		output += "Showing step " + currentStep + ":\n";
+		// if puzzle state for the current step is never stored, set new puzzle state
 		if (puzzleStates[currentStep] == null) {
-			System.out.println("in null, step " + currentStep);
 			String position = "";
 			for (int i=0; i<numRow; i++) {
 				for (int j=0; j<numCol; j++) {
@@ -398,15 +400,11 @@ public class MainFrame extends JFrame {
 				}
 				position += "\n";
 			}
-			System.out.println("player: " + player.row + ", " + player.col);
 			output += position;
 			puzzleStates[currentStep] = position;
-			System.out.println(position);
 		}
-		else {
+		else
 			output += puzzleStates[currentStep];
-			
-		}
 		answerText.setText(output);
 		repaint();
 	}
