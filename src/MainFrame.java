@@ -450,7 +450,7 @@ public class MainFrame extends JFrame {
 		layout.putConstraint(SpringLayout.WEST, heuristicsMenu,
                 1, SpringLayout.EAST, questionLabel2);
 		layout.putConstraint(SpringLayout.NORTH, heuristicsMenu,
-                11, SpringLayout.NORTH, labelPanel);
+                12, SpringLayout.NORTH, labelPanel);
 	}
 	
 
