@@ -74,3 +74,6 @@ The output is in the following format:
 6. Number of nodes on the explored list (if there is one) when termination occurs
 7. The actual run time of the algorithm, expressed in milliseconds
 </pre>
+
+The output is also printed out in the "Answer" section of the GUI frame.
+<br>A step-by-step solution to the puzzle can be shown by pressing "Previous" or "Next" button.
