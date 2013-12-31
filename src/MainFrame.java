@@ -1,28 +1,14 @@
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.GridLayout;
-import java.awt.Image;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
+import java.awt.*;
+import java.awt.event.*;
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.SpringLayout;
-import javax.swing.BorderFactory;
-import javax.swing.JComboBox;
-import javax.swing.JButton;
-import javax.swing.JLabel;
-import javax.swing.JTextArea;
-import javax.swing.JTextField;
-import javax.swing.ImageIcon;
-import javax.swing.JScrollPane;
+import javax.swing.*;
 import static javax.swing.ScrollPaneConstants.*;
 
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
 
 import javax.imageio.ImageIO;
@@ -37,12 +23,10 @@ public class MainFrame extends JFrame {
 
 	private static final long serialVersionUID = 1L;
 	private SokobanSolver solver;
-	private String questionSelected = " ";
-	private JButton submit;
+	private JButton submit, next, prev;
 	private JTextArea answerText;
-	private JLabel loadingLabel;
-	private JComboBox searchMenu; //scroll-down menu for the search methods
-	private JComboBox heuristicsMenu; //scroll-down menu for the heuristics
+	private JLabel loadingLabel, stepLabel;
+	private JComboBox searchMenu, heuristicsMenu; //scroll-down menus for search methods and heuristics
 	private char hChoice = ' ';
 	private JPanel questionPanel;
 	
@@ -51,6 +35,17 @@ public class MainFrame extends JFrame {
 	private JLabel questionLabel2 = new JLabel();
 	private JTextField questionField1 = new JTextField();
 	
+	private int numRow, numCol, currentStep;
+	private String questionSelected = " ";
+	private String solution = "";
+	private String[] steps;
+	
+	private HashSet<Coordinate> walls;
+	private HashSet<Coordinate> goals;
+	private HashSet<Coordinate> boxes;
+	private Coordinate player;
+	private String[] puzzleStates;
+	
 	// choices for scroll-down menu
 	private String[] choices = {"Breadth-First", "Depth-First", "Uniform-Cost", 
 			"Greedy", "A*"}; 
@@ -58,20 +53,20 @@ public class MainFrame extends JFrame {
 	private String[] hChoices = {"Manhattan", "Euclidean", 
 			"Hungarian", "Max{h1, h2, h3}"};
 	
+	
 	/**
 	 * Calls init() method, and sets the values for main frame
 	 * @throws IOException
 	 */
 	public MainFrame() throws IOException {
 		init();
+		updateQuestion("default");
 		setSize(700, 500);
 		setTitle("Sokoban Solver");
 		setDefaultCloseOperation(EXIT_ON_CLOSE);
 		setResizable(false); //disabling the ability to change the frame size
 		setVisible(true);
-		submit.setEnabled(false); // disable submit button while parsing data
 		solver = new SokobanSolver();
-		submit.setEnabled(true); // enable button after parsing is finished
 	}
 
 	/**
@@ -81,10 +76,12 @@ public class MainFrame extends JFrame {
 	private void init() throws IOException {
 		JPanel mainPanel = (JPanel) getContentPane();
 		mainPanel.setLayout(new BorderLayout());
-		mainPanel.add(getTopPanel(), BorderLayout.NORTH); // question and logo
-		mainPanel.add(getAnswerPanel(), BorderLayout.CENTER); //answer panel
-		mainPanel.add(getLoadingPanel(), BorderLayout.SOUTH); //loading panel
+		mainPanel.add(getTopPanel(), BorderLayout.NORTH); // question panel and logo
+		mainPanel.add(getAnswerPanel(), BorderLayout.CENTER); // answer panel
+		mainPanel.add(getLoadingPanel(), BorderLayout.SOUTH); // loading panel
+		addListeners(); // add listeners for buttons
 	}
+	
 
 	/**
 	 * Adds loading status message at the bottom (south) of the frame
@@ -94,18 +91,46 @@ public class MainFrame extends JFrame {
 		JPanel loadingPanel = new JPanel();
 		SpringLayout layout = new SpringLayout();
 		loadingPanel.setLayout(layout);
-		loadingPanel.setPreferredSize(new Dimension(650,50));
+		loadingPanel.setPreferredSize(new Dimension(700,50));
 		
-		//set appropriate string to each label and add to panel
+		// set appropriate string to each label and add to panel
 		loadingLabel = new JLabel();
 		loadingLabel.setText(" ");
+		
+		// set step label
+		stepLabel = new JLabel();
+		stepLabel.setText("Show steps:");
+		stepLabel.setVisible(false);
+		
+		// add prev & next buttons to control each step
+		prev = new JButton("Previous");
+		prev.setVisible(false);
+		next = new JButton("Next");
+		next.setVisible(false);
+		
 		loadingPanel.add(loadingLabel);
+		loadingPanel.add(stepLabel);
+		loadingPanel.add(prev);
+		loadingPanel.add(next);
 		
 		// set constraints and spaces between labels
 		layout.putConstraint(SpringLayout.WEST, loadingLabel,
                 10, SpringLayout.WEST, loadingPanel);
 		layout.putConstraint(SpringLayout.NORTH, loadingLabel,
                 15, SpringLayout.NORTH, loadingPanel);
+		layout.putConstraint(SpringLayout.EAST, next, -10, 
+				SpringLayout.EAST, loadingPanel);
+		layout.putConstraint(SpringLayout.NORTH, next, 10, 
+				SpringLayout.NORTH, loadingPanel);
+		layout.putConstraint(SpringLayout.EAST, prev, 10, 
+				SpringLayout.WEST, next);
+		layout.putConstraint(SpringLayout.NORTH, prev, 10, 
+				SpringLayout.NORTH, loadingPanel);
+		layout.putConstraint(SpringLayout.EAST, stepLabel, 0, 
+				SpringLayout.WEST, prev);
+		layout.putConstraint(SpringLayout.NORTH, stepLabel, 15, 
+				SpringLayout.NORTH, loadingPanel);
+		
 		return loadingPanel;
 	}
 
@@ -119,13 +144,16 @@ public class MainFrame extends JFrame {
 		answerPanel.setLayout(new BorderLayout());
 		answerText = new JTextArea();
 		answerText.setText("");
-		answerText.setSize(new Dimension(650, 350));
+		answerText.setSize(new Dimension(650, 100));
 		answerText.setEditable(false); //disable user editing function
 		answerText.setLineWrap(true); //wrap lines when item name is too long
+		Font font = new Font("Monaco", Font.PLAIN, 12);
+        answerText.setFont(font);
+		
 		answerPanel.add(answerText);
 		JScrollPane answerPane = new JScrollPane(answerPanel);
 		//putting answerPanel into JScrollPane to allow scrolls to appear
-		answerPane.setSize(new Dimension(650,350));
+		answerPane.setSize(new Dimension(700,350));
 		answerPane.setHorizontalScrollBarPolicy(HORIZONTAL_SCROLLBAR_NEVER);
 		answerPane.setBorder(BorderFactory.createTitledBorder("Answer"));
 		return answerPane;
@@ -138,11 +166,11 @@ public class MainFrame extends JFrame {
 	 */
 	private JPanel getTopPanel() throws IOException {
 		JPanel topPanel = new JPanel();
-		topPanel.setSize(new Dimension(650, 100));
+		topPanel.setSize(new Dimension(700, 100));
 		topPanel.setLayout(new GridLayout(2, 1));
 		
 		// add Sokoban logo on the top grid
-		Image logo = ImageIO.read(new File("sokoban-logo.png"));
+		Image logo = ImageIO.read(new File("img/sokoban-logo.png"));
 		Image resizedLogo = logo.getScaledInstance(700, 50,
 				Image.SCALE_SMOOTH); // resize image to fit the frame
 		JLabel picLabel = new JLabel(new ImageIcon(resizedLogo));
@@ -152,47 +180,63 @@ public class MainFrame extends JFrame {
 		// add questionPanel on the bottom grid
 		questionPanel = new JPanel();
 		questionPanel.setLayout(new BorderLayout());
-		questionPanel.setSize(650, 50);
+		questionPanel.setSize(700, 50);
 		
 		// add drop-down menu for questions into questionPanel
 		searchMenu = new JComboBox(choices);
 		searchMenu.setSize(80, 40);
 		searchMenu.setEditable(false);
-		updateQuestion("default");
-		
-		// add actionListener to the drop-down menu
-		searchMenu.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent event) {
-					JComboBox comboBox = (JComboBox) event.getSource();
-					questionSelected = comboBox.getSelectedItem().toString();
-					updateQuestion(questionSelected.toLowerCase());
-				}
-			});
 		
 		heuristicsMenu = new JComboBox(hChoices);
 		heuristicsMenu.setSize(80, 40);
 		heuristicsMenu.setEditable(false);
 		heuristicsMenu.setVisible(false);
 		
-		// add actionListener to the drop-down menu
-		heuristicsMenu.addActionListener(new ActionListener() {
-				public void actionPerformed(ActionEvent event) {
-					JComboBox comboBox = (JComboBox) event.getSource();
-					String selected = comboBox.getSelectedItem().toString();
-					if (selected.contains("Max")) {
-						hChoice = 'x';
-					}
-					else
-						hChoice = selected.charAt(0);
-				}
-			});
-		
-		// add submit button to questionPanel
+		// add submit button to the questionPanel
 		submit = new JButton("Solve");
+		
+		// add question labels and fields to questionPanel
+		SpringLayout layout = new SpringLayout();
+		JPanel labelPanel = new JPanel(layout);
+		labelPanel.add(questionLabel1);
+		labelPanel.add(questionField1);
+		labelPanel.add(questionLabel2);
+		labelPanel.add(heuristicsMenu);
+		setLayoutBounds(layout, labelPanel); // set bounds between each labels
+		
+		questionPanel.add(searchMenu, BorderLayout.WEST);	
+		questionPanel.add(labelPanel, BorderLayout.CENTER);
+		questionPanel.add(submit, BorderLayout.EAST);
+		topPanel.add(questionPanel);
+		return topPanel;
+	}
+	
+
+	private void addListeners() {
+		// add actionListener to the search menu
+		searchMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				JComboBox comboBox = (JComboBox) event.getSource();
+				questionSelected = comboBox.getSelectedItem().toString();
+				updateQuestion(questionSelected.toLowerCase());
+			}
+		});
+
+		// add actionListener to the heuristics menu
+		heuristicsMenu.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent event) {
+				JComboBox comboBox = (JComboBox) event.getSource();
+				String selected = comboBox.getSelectedItem().toString();
+				if (selected.contains("Max")) {
+					hChoice = 'x';
+				}
+				else
+					hChoice = selected.charAt(0);
+			}
+		});
 		
 		// add mouseListner to submit button
 		submit.addMouseListener(new MouseListener() {
-
 			public void mouseClicked(MouseEvent arg0) {
 			}
 			public void mouseEntered(MouseEvent arg0) {
@@ -205,6 +249,9 @@ public class MainFrame extends JFrame {
 			// display loading message when mouse is pressed
 			public void mousePressed(MouseEvent arg0) {
 				if (submit.isEnabled()) {
+					stepLabel.setVisible(false);
+					prev.setVisible(false);
+					next.setVisible(false);
 					displaySolvingMessage(questionSelected);
 				}
 			}
@@ -222,11 +269,20 @@ public class MainFrame extends JFrame {
 						displayMessage("Please have only 1 player in the puzzle");
 					}
 					else {
+						numRow = solver.getRow();
+						numCol = solver.getCol();
+						goals = solver.getGoals();
+						walls = solver.getWalls();
+						boxes = solver.getBoxes();
+						player = solver.getPlayer();
+						currentStep = 0;
 						char method = Character.toLowerCase(questionSelected.charAt(0));
 						String answer = solver.solve(method);
 						System.out.println(answer);
 						String[] lines = answer.split("\\r?\\n");
-						String solution = lines[1];
+						solution = lines[1];
+						steps = solution.split(" ");
+						puzzleStates = new String[steps.length+1];
 						String totalSteps = lines[2];
 						answerText.setText("Solution: " + solution + " " + totalSteps);
 						String runtime = answer.substring(answer.indexOf("units")+7);
@@ -237,7 +293,10 @@ public class MainFrame extends JFrame {
 						}
 						else {
 							displayMessage("Solution found using " + message);
-							simulateSolution(solution);
+							stepLabel.setVisible(true);
+							prev.setVisible(true);
+							next.setVisible(true);
+							updatePuzzle();
 						}
 					}
 				} catch (NumberFormatException e) {
@@ -250,26 +309,105 @@ public class MainFrame extends JFrame {
 							"contain total number of rows in the puzzle");
 				}
 			}
+		});	
+		
+		prev.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (currentStep>0) {
+					currentStep -= 1;
+					updatePuzzle();
+				}
+			}
 		});
 		
-		// add question labels and fields to questionPanel
-		SpringLayout layout = new SpringLayout();
-		JPanel labelPanel = new JPanel(layout);
-		labelPanel.add(questionLabel1);
-		labelPanel.add(questionField1);
-		labelPanel.add(questionLabel2);
-		labelPanel.add(heuristicsMenu);
-		setLayoutBounds(layout, labelPanel); // set bounds between each labels
-		questionPanel.add(searchMenu, BorderLayout.WEST);	
-		questionPanel.add(labelPanel, BorderLayout.CENTER);
-		questionPanel.add(submit, BorderLayout.EAST);
-		topPanel.add(questionPanel);
-		return topPanel;
+		next.addActionListener(new ActionListener() {
+			public void actionPerformed(ActionEvent arg0) {
+				if (currentStep<steps.length) {
+					if (puzzleStates[currentStep+1]==null) {
+						int row = player.row;
+						int col = player.col;
+						System.out.println("current player: " + row + ", " + col);
+						if (steps[currentStep].equals("u")) {
+							Coordinate checkBox = new Coordinate(row-1, col);
+							if (boxes.contains(checkBox)) {
+								boxes.remove(checkBox);
+								boxes.add(new Coordinate(row-2, col));
+							}
+							player = new Coordinate(row-1, col);
+							System.out.println("in u, player: " + player.row + ", " + player.col);
+						}
+						else if (steps[currentStep].equals("d")) {
+							Coordinate checkBox = new Coordinate(row+1, col);
+							if (boxes.contains(checkBox)) {
+								boxes.remove(checkBox);
+								boxes.add(new Coordinate(row+2, col));
+							}
+							player = new Coordinate(row+1, col);
+							System.out.println("in d, player: " + player.row + ", " + player.col);
+						}
+						else if (steps[currentStep].equals("l")) {
+							Coordinate checkBox = new Coordinate(row, col-1);
+							if (boxes.contains(checkBox)) {
+								boxes.remove(checkBox);
+								boxes.add(new Coordinate(row, col-2));
+							}
+							player = new Coordinate(row, col-1);
+							System.out.println("in l, player: " + player.row + ", " + player.col);
+						}
+						else if (steps[currentStep].equals("r")) {
+							Coordinate checkBox = new Coordinate(row, col+1);
+							if (boxes.contains(checkBox)) {
+								boxes.remove(checkBox);
+								boxes.add(new Coordinate(row, col+2));
+							}
+							player = new Coordinate(row, col+1);
+							System.out.println("in r, player: " + player.row + ", " + player.col);
+						}
+					}
+					currentStep += 1;
+					updatePuzzle();
+				}
+			}
+		});
+	
 	}
 
-	private void simulateSolution(String solution) {
-		// TODO Auto-generated method stub
-		
+	private void updatePuzzle() {
+		int totalSteps = solution.split(" ").length;
+		String output = "Solution: " + solution + "(total of " + totalSteps + " steps)\n\n";
+		output += "Showing step " + currentStep;
+		if (currentStep != 0)
+			output += " (moved " + steps[currentStep-1] + ")";
+		output += ":\n";
+		if (puzzleStates[currentStep] == null) {
+			System.out.println("in null, step " + currentStep);
+			String position = "";
+			for (int i=0; i<numRow; i++) {
+				for (int j=0; j<numCol; j++) {
+					Coordinate c = new Coordinate(i, j);
+					if (player.equals(c))
+						position += "@";
+					else if (boxes.contains(c))
+						position += "$";
+					else if (goals.contains(c))
+						position += ".";
+					else if (walls.contains(c))
+						position += "#";
+					else
+						position += " ";
+				}
+				position += "\n";
+			}
+			System.out.println("player: " + player.row + ", " + player.col);
+			output += position;
+			puzzleStates[currentStep] = position;
+			System.out.println(position);
+		}
+		else {
+			output += puzzleStates[currentStep];
+			
+		}
+		answerText.setText(output);
 		repaint();
 	}
 	
@@ -290,6 +428,7 @@ public class MainFrame extends JFrame {
 		loadingLabel.setText(message);
 		repaint();
 	}
+	
 
 	/**
 	 * Sets bounds between the labels and textFields to neatly 
@@ -315,17 +454,19 @@ public class MainFrame extends JFrame {
 		layout.putConstraint(SpringLayout.NORTH, heuristicsMenu,
                 11, SpringLayout.NORTH, labelPanel);
 	}
+	
 
 	/**
 	 * Updates labels and textFields according to the selected question 
 	 * to display appropriate string
-	 * @param selectedQuestion
+	 * @param selected String that contains the selected search method
 	 */
 	private void updateQuestion(String selected) {
 		questionLabel1.setText("Enter the filename: ");
 		questionField1.setText("[filename]");
-		questionField1.setPreferredSize(new Dimension(80, 20));
+		questionField1.setPreferredSize(new Dimension(100, 20));
 		questionField1.setVisible(true);
+		submit.setEnabled(true);
 		if (selected.equals("a*")||selected.equals("greedy")) {
 			questionLabel2.setText(". Heuristics: ");
 			heuristicsMenu.setVisible(true);
@@ -339,6 +480,7 @@ public class MainFrame extends JFrame {
 			questionLabel1.setText("Please select a search method from the left.");
 			questionField1.setVisible(false);
 			questionLabel2.setText("");
+			submit.setEnabled(false);
 		}
 		repaint();
 	}

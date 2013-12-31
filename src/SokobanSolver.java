@@ -20,6 +20,9 @@ public class SokobanSolver {
 	private Problem prob;
 	private Heuristics h;
 	
+	private int row;
+	private int col;
+	
 	public SokobanSolver() {
 	}
 	
@@ -34,13 +37,14 @@ public class SokobanSolver {
 	public int loadFile(String filename, char hChoice) throws FileNotFoundException, 
 			NumberFormatException, NoSuchElementException {
 		
+		col = 0;
 		int numPlayer = 0;
 		walls = new HashSet<Coordinate>();
 		goals = new HashSet<Coordinate>();
 		boxes = new HashSet<Coordinate>();
 		Scanner s = new Scanner(new File(filename));
-		int rowNum = Integer.parseInt(s.nextLine());
-		for (int i=0; i<rowNum; i++) {
+		row = Integer.parseInt(s.nextLine());
+		for (int i=0; i<row; i++) {
 			String next = s.nextLine();
 			for (int j=0; j<next.length(); j++) {
 				char c = next.charAt(j);
@@ -55,9 +59,12 @@ public class SokobanSolver {
 				if (c == '$' || c == '*') //boxes
 					boxes.add(new Coordinate(i,j));
 			}
+			if (next.length() > col)
+				col = next.length();
 		}
 		prob = new Problem(walls, new State(boxes, player), goals);
 		h = new Heuristics(goals, hChoice);
+		System.out.println("row: " + row + ", col: " + col);
 		return numPlayer;
 	}
 
@@ -82,5 +89,29 @@ public class SokobanSolver {
 		default:
 			return "Invalid method, please choose a valid search method.";
 		}
+	}
+
+	public int getRow() {
+		return row;
+	}
+	
+	public int getCol() {
+		return col;
+	}
+
+	public HashSet<Coordinate> getWalls() {
+		return walls;
+	}
+	
+	public HashSet<Coordinate> getBoxes() {
+		return boxes;
+	}
+	
+	public HashSet<Coordinate> getGoals() {
+		return goals;
+	}
+	
+	public Coordinate getPlayer() {
+		return player;
 	}
 }
