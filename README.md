@@ -81,10 +81,10 @@ Screenshots
 --------------
 
 Initial screen when the program starts. Select the search method from the left to start.
-![Initial screen](https://scontent-a-hkg.xx.fbcdn.net/hphotos-frc1/t1.0-9/1959475_10201115903780055_3538710354640846939_n.jpg)
+![Initial screen](https://s3.amazonaws.com/jameshong/screenshots/Project+Screenshots/sokoban/1.jpg)
 
 Select the search method and enter the file path with filename. If necessary, choose the heuristic method (only for greedy and A*).
-![Selecting search method](https://fbcdn-sphotos-g-a.akamaihd.net/hphotos-ak-prn1/t1.0-9/10300311_10201115903820056_7032060369080281354_n.jpg)
+![Selecting search method](https://s3.amazonaws.com/jameshong/screenshots/Project+Screenshots/sokoban/2.jpg)
 
 When a user presses start, the output is printed in the "Answer" section of the GUI frame, which prints the solution steps and the puzzle. A step-by-step solution to the puzzle can be shown by pressing "Previous" or "Next" button.
-![Showing solution](https://fbcdn-sphotos-a-a.akamaihd.net/hphotos-ak-ash3/t1.0-9/10176171_10201115903860057_2250518510045849699_n.jpg)
+![Showing solution](https://s3.amazonaws.com/jameshong/screenshots/Project+Screenshots/sokoban/3.jpg)
